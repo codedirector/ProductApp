@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Product Manager</title>
+</head>
+<body>
+  <h2>User Dashboard</h2>
+  <br/>
+  <!-- <h2>Add Product (Admin Only)</h2>
+  <form id="productForm" enctype="multipart/form-data">
+    <input type="text" name="name" placeholder="Product Name" required><br>
+    <input type="number" name="price" placeholder="Price" required><br>
+    <textarea name="description" placeholder="Description"></textarea><br>
+    <input type="file" name="image" accept="image/*"><br>
+    <button type="submit">Add Product</button>
+  </form> -->
+
+  <h2>All Products</h2>
+  <div id="productsList"></div>
+
+  <script>
+    const token = localStorage.getItem("token");
+
+    // Handle product form submit
+    // document.getElementById("productForm").addEventListener("submit", async (e) => {
+    //   e.preventDefault();
+    //   const form = e.target;
+    //   const formData = new FormData(form);
+
+    //   const res = await fetch("http://localhost:5000/products", {
+    //     method: "POST",
+    //     headers: {
+    //       Authorization: token,
+    //     },
+    //     body: formData
+    //   });
+
+    //   const text = await res.text();
+    //   alert(text);
+    //   form.reset();
+    //   loadProducts(); // reload products
+    // });
+
+    // Load and display all products
+    async function loadProducts() {
+      const res = await fetch("http://localhost:5000/products");
+      const products = await res.json();
+
+      const list = document.getElementById("productsList");
+      list.innerHTML = "";
+
+      products.forEach((p) => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <h3>${p.name}</h3>
+          <p>Price: ₹${p.price}</p>
+          <p>${p.description || ""}</p>
+          ${p.image ? `<img src="http://localhost:5000/uploads/${p.image}" width="150"/>` : ""}
+          <hr>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    loadProducts(); // run on page load
+  </script>
+</body>
+</html>

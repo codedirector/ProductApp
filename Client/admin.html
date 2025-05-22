@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+</head>
+<body>
+  <h2>Admin: Add New Product</h2>
+
+  <form id="productForm" enctype="multipart/form-data">
+    <input name="name" placeholder="Product Name" required><br>
+    <input name="price" type="number" placeholder="Price" required><br>
+    <textarea name="description" placeholder="Description"></textarea><br>
+    <input type="file" name="image" accept="image/*"><br>
+    <button type="submit">Add Product</button>
+  </form>
+
+  <h2>All Products</h2>
+  <div id="productsList"></div>
+
+  <script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login first.");
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("productForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      const res = await fetch("http://localhost:5000/products", {
+        method: "POST",
+        headers: { Authorization: token },
+        body: formData,
+      });
+
+      const msg = await res.text();
+      alert(msg);
+      e.target.reset();
+      loadProducts();
+    });
+
+
+    async function loadProducts() {
+      const res = await fetch("http://localhost:5000/products");
+      const products = await res.json();
+
+      const container = document.getElementById("productsList");
+      container.innerHTML = "";
+
+      products.forEach((p) => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <h3>${p.name}</h3>
+          <p>₹${p.price}</p>
+          <p>${p.description}</p>
+          ${p.image ? `<img src="http://localhost:5000/uploads/${p.image}" width="150"/>` : ""}
+          <br>
+          <button onclick="deleteProduct('${p._id}')">Delete</button>
+          <button onclick="editProduct('${p._id}', '${p.name}', ${p.price}, '${p.description || ""}')">Edit</button>
+          <hr>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    
+    async function deleteProduct(id) {
+      const res = await fetch(`http://localhost:5000/products/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: token },
+      });
+
+      const msg = await res.text();
+      alert(msg);
+      loadProducts();
+    }
+
+  
+    async function editProduct(id, name, price, description) {
+      const newName = prompt("Edit name:", name);
+      const newPrice = prompt("Edit price:", price);
+      const newDesc = prompt("Edit description:", description);
+
+      const res = await fetch(`http://localhost:5000/products/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: token,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: newName,
+          price: newPrice,
+          description: newDesc,
+        }),
+      });
+
+      const msg = await res.text();
+      alert(msg);
+      loadProducts();
+    }
+
+    loadProducts(); 
+  </script>
+</body>
+</html>
